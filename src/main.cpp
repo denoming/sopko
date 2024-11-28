@@ -1,16 +1,9 @@
 #include <Arduino.h>
 
-#define WIFI_SSID "ZION"
-#define WIFI_PASS "Nirvana13~"
-#define MQTT_USER "denys"
-#define MQTT_PASS "123456"
-#define MQTT_SERVER "192.168.1.43"
-#define MQTT_PORT 1883
-
-#include "Publisher.hpp"
 #include "WiFiStation.hpp"
+#include "Publisher.hpp"
 
-static Publisher publisher{MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASS};
+static Publisher publisher{SPK_MQTT_HOST, SPK_MQTT_PORT, SPK_MQTT_USER, SPK_MQTT_PASS};
 
 static void
 setupSerial(const uint32_t baud)
@@ -27,9 +20,9 @@ setupSerial(const uint32_t baud)
 void
 setup()
 {
-    setupSerial(9600);
+    setupSerial(SPK_MISC_BAUD);
 
-    WiFiStation::connect(WIFI_SSID, WIFI_PASS);
+    WiFiStation::connect(SPK_WIFI_SSID, SPK_WIFI_PASS);
 
     publisher.connect();
 }
