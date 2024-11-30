@@ -4,8 +4,10 @@
 #include "Publisher.hpp"
 #include "SoilSensor.hpp"
 
+#include <chrono>
+
 static Publisher publisher{SPK_MQTT_HOST, SPK_MQTT_PORT, SPK_MQTT_USER, SPK_MQTT_PASS};
-static SoilSensor sensor;
+static SoilSensor sensor{std::chrono::milliseconds{SPK_MISC_INTERVAL}};
 
 static void
 setupSerial(const uint32_t baud)
@@ -26,12 +28,19 @@ setup()
 
     WiFiStation::connect(SPK_WIFI_SSID, SPK_WIFI_PASS);
 
+    publisher.onConnected([](const char* clientId) {
+        Serial.print("Connected to MQTT: "), Serial.println(clientId);
+        sensor.start();
+    });
+    publisher.onDisconnected([] {
+        Serial.println("Disconnected from MQTT");
+        sensor.stop();
+    });
     publisher.connect();
 
-    sensor.onHumidityUpdate([](const std::string& value) {
-        Serial.print("New value: "), Serial.println(value.data());
+    sensor.onHumidityUpdate([](const std::string& topic, const std::string& value) {
+        publisher.publish(topic.data(), value.data(), value.length());
     });
-    sensor.start();
 }
 
 void

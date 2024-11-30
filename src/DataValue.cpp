@@ -28,6 +28,6 @@ void
 DataValue::notifyUpdate()
 {
     if (_callback) {
-        _callback(format());
+        _callback(_topic, format());
     }
 }

@@ -4,7 +4,10 @@
 
 #include <functional>
 
-Publisher::Publisher(const char* host, uint16_t port, const char* username, const char* password)
+Publisher::Publisher(const char* host,
+                     const uint16_t port,
+                     const char* username,
+                     const char* password)
     : Publisher{}
 {
     _client.setCredentials(username, password);
@@ -22,7 +25,7 @@ Publisher::Publisher(const IPAddress& addr,
 }
 
 Publisher::Publisher()
-    : _reconnectTimer{[this] { tryConnect(); }, 3000, 0, MILLIS}
+    : _reconnectTimer{[this] { tryConnect(); }, SPK_MQTT_TIMEOUT, 0, MILLIS}
 {
     _onWiFiHandler1 = WiFi.onStationModeGotIP([this](const auto&) { onHasNetwork(); });
     _onWiFiHandler2 = WiFi.onStationModeDisconnected([this](const auto&) { onLostNetwork(); });
@@ -52,16 +55,26 @@ Publisher::connect()
 {
     if (WiFi.isConnected()) {
         tryConnect();
-    } else {
-        Serial.println("Waiting for WiFi connection");
     }
 }
 
 void
-Publisher::publish(const char* topic, const char* payload, const bool retained)
+Publisher::onConnected(OnConnected callback)
+{
+    _connectedCallback = std::move(callback);
+}
+
+void
+Publisher::onDisconnected(OnDisconnected callback)
+{
+    _disconnectedCallback = std::move(callback);
+}
+
+void
+Publisher::publish(const char* topic, const char* payload, size_t length, const bool retained)
 {
     if (_client.connected()) {
-        _client.publish(topic, 2, retained, payload, strlen(payload));
+        _client.publish(topic, 2, retained, payload, length);
     }
 }
 
@@ -75,7 +88,6 @@ void
 Publisher::tryConnect()
 {
     if (not _client.connected()) {
-        Serial.println("Connecting to MQTT");
         _client.connect();
     }
 }
@@ -95,15 +107,19 @@ Publisher::onLostNetwork()
 void
 Publisher::onConnect(const bool /*sessionPresent*/)
 {
-    Serial.print("Connected to MQTT: "), Serial.println(_client.getClientId());
     _reconnectTimer.stop();
+    if (_connectedCallback) {
+        _connectedCallback(_client.getClientId());
+    }
 }
 
 void
 Publisher::onDisconnect(const AsyncMqttClientDisconnectReason reason)
 {
-    Serial.print("Disconnected from MQTT: "), Serial.println(static_cast<int>(reason));
     if (WiFi.isConnected()) {
         _reconnectTimer.start();
+    }
+    if (_disconnectedCallback) {
+        _disconnectedCallback();
     }
 }

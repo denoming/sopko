@@ -1,11 +1,7 @@
 #include "SoilSensor.hpp"
 
-static constexpr uint8_t kAnalogPin = 0;
-
-
-
-SoilSensor::SoilSensor()
-    : _updateTimer{[this] { read(); }, 3000, 0, MILLIS}
+SoilSensor::SoilSensor(std::chrono::milliseconds readInterval)
+    : _updateTimer{[this] { read(); }, static_cast<uint32_t>(readInterval.count()), 0, MILLIS}
 {
 }
 
@@ -22,6 +18,12 @@ SoilSensor::start()
 }
 
 void
+SoilSensor::stop()
+{
+    _updateTimer.stop();
+}
+
+void
 SoilSensor::operator()()
 {
     _updateTimer.update();
@@ -30,6 +32,6 @@ SoilSensor::operator()()
 void
 SoilSensor::read()
 {
-    const int value = analogRead(kAnalogPin);
+    const int value = analogRead(A0);
     _humidity.set(value);
 }

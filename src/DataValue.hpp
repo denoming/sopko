@@ -5,7 +5,7 @@
 
 class DataValue {
 public:
-    using Callback = std::function<void(const std::string& value)>;
+    using Callback = std::function<void(const std::string& topic, const std::string& value)>;
 
     static inline const char* kFieldCaption = "caption";
     static inline const char* kFieldValue = "value";
