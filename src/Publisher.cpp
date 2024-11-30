@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 
 #include <functional>
+#include <string>
 
 Publisher::Publisher(const char* host,
                      const uint16_t port,
@@ -71,7 +72,13 @@ Publisher::onDisconnected(OnDisconnected callback)
 }
 
 void
-Publisher::publish(const char* topic, const char* payload, size_t length, const bool retained)
+Publisher::publish(const char* topic, const std::string& payload, const bool retained)
+{
+    publish(topic, payload.data(), payload.length(), retained);
+}
+
+void
+Publisher::publish(const char* topic, const char* payload, const size_t length, const bool retained)
 {
     if (_client.connected()) {
         _client.publish(topic, 2, retained, payload, length);

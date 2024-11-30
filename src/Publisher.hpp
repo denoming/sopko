@@ -30,6 +30,9 @@ public:
     onDisconnected(OnDisconnected callback);
 
     void
+    publish(const char* topic, const std::string& payload, bool retained = true);
+
+    void
     publish(const char* topic, const char* payload, size_t length = 0, bool retained = true);
 
     void

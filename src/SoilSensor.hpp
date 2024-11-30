@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SoilHumidityValue.hpp"
+#include "Publisher.hpp"
 
 #include <TickTwo.h>
 
@@ -10,12 +11,9 @@
 
 class SoilSensor {
 public:
-    using OnUpdate = std::function<void(const std::string& topic, const std::string& value)>;
+    explicit SoilSensor(Publisher& publisher, std::chrono::milliseconds readInterval);
 
-    explicit SoilSensor(std::chrono::milliseconds readInterval);
-
-    void
-    onHumidityUpdate(OnUpdate callback);
+    ~SoilSensor();
 
     void
     start();
@@ -30,8 +28,22 @@ private:
     void
     read();
 
+#ifdef SPK_HA_INTEGRATE
+    void
+    integrate();
+#endif
+
+    void
+    onHumidityUpdate(const std::string& topic, const std::string& value) const;
+
+    void
+    onPublisherConnected();
+
+    void
+    onPublisherDisconnected();
+
 private:
+    Publisher& _publisher;
     TickTwo _updateTimer;
-    OnUpdate _humidityCallback;
     SoilHumidityValue _humidity;
 };
