@@ -11,7 +11,10 @@ getIndex(const int value)
     if (value >= 300 and value < 700) {
         return "HumidSoil";
     }
-    if (value >= 700) {
+    if (value >= 700 and value < 900) {
+        return "HighHumidSoil";
+    }
+    if (value >= 900) {
         return "InWater";
     }
     return "Invalid";
